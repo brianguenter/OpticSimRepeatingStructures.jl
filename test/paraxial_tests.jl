@@ -43,10 +43,10 @@ end
     end
 
     #spherepoint tests
-    @test isapprox(Multilens.spherepoint(1, π / 2, 0.0), [0.0, 1.0, 0.0])
-    @test isapprox(Multilens.spherepoint(1, 0.0, π / 2), [1.0, 0.0, 0.0])
-    @test isapprox(Multilens.spherepoint(1, 0, 0.0), [0.0, 0.0, 1.0])
-    @test isapprox(Multilens.spherepoint(1, 0.0, π / 4), [sqrt(2) / 2, 0.0, sqrt(2) / 2])
+    @test isapprox(spherepoint(1, π / 2, 0.0), [0.0, 1.0, 0.0])
+    @test isapprox(spherepoint(1, 0.0, π / 2), [1.0, 0.0, 0.0])
+    @test isapprox(spherepoint(1, 0, 0.0), [0.0, 0.0, 1.0])
+    @test isapprox(spherepoint(1, 0.0, π / 4), [sqrt(2) / 2, 0.0, sqrt(2) / 2])
 
 
     """ Create a LatticeCluster with three elements at (0,0),(-1,0),(-1,1) coordinates in the HexBasis1 lattice"""
@@ -66,7 +66,7 @@ end
     @test basistest(hex3cluster()) == basistest(hex3RGB())
 
     #LatticeCluster testset
-    cluster = Multilens.hex9()
+    cluster = hex9()
 
     #generate many tile coordinates. Compute the cluster index and tile index in that cluster for each tile coordinate.
     for iter in 1:100
@@ -78,12 +78,12 @@ end
 
     function testassignment()
         #test assignment of eyebox numbers to RGB clusters
-        rgb_cluster = Multilens.hex12RGB()
+        rgb_cluster = hex12RGB()
         cluster_coords = map(x -> Tuple(x), eachcol(clustercoordinates(rgb_cluster, 0, 0))) #create the cluster coordinates corresponding to each of the tiles in the cluster
         eyeboxnumbers = (1, 1, 2, 1, 2, 2, 3, 3, 3, 4, 4, 4) #correct eyebox number assignment for the tiles in the cluster
         for (index, coord) in enumerate(cluster_coords)
             boxnum = eyeboxnumbers[index]
-            num = Multilens.eyebox_number(coord, rgb_cluster, 4)
+            num = eyebox_number(coord, rgb_cluster, 4)
             if num != boxnum
                 return false
             end
@@ -109,7 +109,7 @@ end
 
         try
             for cycles in 15:30
-                OpticSim.Multilens.system_properties(15mm, (10mm, 9mm), (100°, 70°), 3.5mm, 0.1, cycles)
+                system_properties(15mm, (10mm, 9mm), (100°, 70°), 3.5mm, 0.1, cycles)
             end
         catch err #if any errors then failure
             return false

@@ -52,4 +52,4 @@ end
 drawhex3RGB() = Vis.draw(hex3RGB(), [0 1 0; 0 0 1])
 
 """ draw 3 repeats of hex12RGB cluster """
-drawhex12RGB() = Vis.draw(Multilens.hex12RGB(), [0 1 0 1; 0 0 1 1])
+drawhex12RGB() = Vis.draw(hex12RGB(), [0 1 0 1; 0 0 1 1])
