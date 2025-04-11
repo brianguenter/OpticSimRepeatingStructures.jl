@@ -1,0 +1,61 @@
+name: CI
+on:
+  push:
+    branches: [main, 'test/**', 'tnd/**']
+    tags: ['*']
+  pull_request:
+jobs:
+  test:
+    name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        version: ['1.10']
+        os: [ubuntu-latest, windows-latest]
+        arch: [x64]
+        include:
+          - os: ubuntu-latest
+            prefix: xvfb-run
+    steps:
+      - uses: actions/checkout@v3
+      - uses: julia-actions/setup-julia@v2
+        with:
+          version: ${{ matrix.version }}
+          arch: ${{ matrix.arch }}
+        id: setup-julia
+      - name: Install Mesa (Windows only)
+        if: runner.os == 'Windows'
+        shell: cmd
+        working-directory: ${{ steps.setup-julia.outputs.julia-bindir }}
+        run: |
+          curl.exe -L --output mesa.7z --url https://github.com/pal1000/mesa-dist-win/releases/download/24.1.5/mesa3d-24.1.5-release-mingw.7z
+          "C:\Program Files\7-Zip\7z.exe" x mesa.7z
+          mklink opengl32.dll "x64\opengl32.dll"
+          mklink libglapi.dll "x64\libglapi.dll"
+      - name: Install GR dependencies (Linux only)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt install libxt6 libxrender1 libxext6 libgl1 libglx-mesa0 libqt5widgets5
+      - uses: actions/cache@v3
+        env:
+          cache-name: cache-artifacts
+        with:
+          path: ~/.julia/artifacts
+          key: ${{ runner.os }}-${{ matrix.arch }}-test-${{ env.cache-name }}-${{ hashFiles('**/Project.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.arch }}-test-${{ env.cache-name }}-
+            ${{ runner.os }}-${{ matrix.arch }}-test-
+            ${{ runner.os }}-${{ matrix.arch }}-
+            ${{ runner.os }}-
+      - uses: alfredclwong/julia-buildpkg@master
+        with:
+          prefix: ${{ matrix.prefix }}
+      - uses: julia-actions/julia-runtest@latest
+        with:
+          prefix: ${{ matrix.prefix }}
+      - uses: julia-actions/julia-processcoverage@v1
+      - uses: codecov/codecov-action@v1
+        with:
+          file: lcov.info
