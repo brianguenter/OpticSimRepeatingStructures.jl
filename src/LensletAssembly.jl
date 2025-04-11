@@ -18,7 +18,7 @@ struct Display{T} <: OpticSim.Surface{T}
         pitchy = Unitful.ustrip(Unitful.μm, ypitch)
         size = (xres * pitchx, yres * pitchy)
         surface = OpticSim.Rectangle(size[1] / T(2), size[2] / T(2), SVector(T(0), T(0), T(1)), SVector(T(0), T(0), T(0))) # surface normal is +z axis
-        pixellattice = Repeat.rectangularlattice(size[2], size[1]) # lattice takes ypitch,xpitch in that order
+        pixellattice = rectangularlattice(size[2], size[1]) # lattice takes ypitch,xpitch in that order
         return new{T}(surface, pixellattice, (pitchx, pitchy), xres, yres, transform)
     end
 end

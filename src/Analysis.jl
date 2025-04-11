@@ -4,21 +4,21 @@
 # See LICENSE in the project root for full license information.
 
 
-import OpticSim.Repeat
+import ..OpticSimRepeatingStructures
 
 #Really should extend AbstractLattice to support cosets, then wouldn't need this ad hoc stuff. TODO
-colorbasis(::Repeat.HexBasis1) = SMatrix{2,2}(2, -1, 1, 1)
-colorbasis(::Repeat.HexBasis3) = SMatrix{2,2}(2, -1, 1, 1)
-colororigins(::Repeat.HexBasis1) = ((0, 0), (-1, 0), (-1, 1))
-colororigins(::Repeat.HexBasis3) = ((0, 0), (0, -1), (1, -1))
+colorbasis(::HexBasis1) = SMatrix{2,2}(2, -1, 1, 1)
+colorbasis(::HexBasis3) = SMatrix{2,2}(2, -1, 1, 1)
+colororigins(::HexBasis1) = ((0, 0), (-1, 0), (-1, 1))
+colororigins(::HexBasis3) = ((0, 0), (0, -1), (1, -1))
 
 """ For lenslets arranged in a hexagonal pattern cross talk between lenslets can be reduced by arranging the color of the lenslets so that each lenslet is surrounded only by lenslets of a different color. This function computes the color to assign to any lattice point to ensure this property holds."""
-function pointcolor(point, cluster::Repeat.AbstractLatticeCluster)
-    latticematrix = colorbasis(Repeat.elementbasis(cluster))
-    origins = colororigins(Repeat.elementbasis(cluster))
+function pointcolor(point, cluster::AbstractLatticeCluster)
+    latticematrix = colorbasis(elementbasis(cluster))
+    origins = colororigins(elementbasis(cluster))
     colors = zip(origins, ("red", "green", "blue"))
     for (origin, color) in colors
-        if nothing !== Repeat.latticepoint(latticematrix, origin, point)
+        if nothing !== latticepoint(latticematrix, origin, point)
             return color
         end
     end
@@ -177,7 +177,7 @@ function choosecluster(pupildiameter::Unitful.Length, lensletdiameter::Unitful.L
     end
 
     maxcluster = clusters[clusterindex](ratio * scale)
-    @assert isapprox(Repeat.euclideandiameter(maxcluster), ustrip(mm, pupildiameter))
+    @assert isapprox(euclideandiameter(maxcluster), ustrip(mm, pupildiameter))
 
     scaledlensletdiameter = lensletdiameter * ratio
     return (cluster=maxcluster, lensletdiameter=scaledlensletdiameter, packingdistance=pupildiameter * ustrip(mm, lensletdiameter))
@@ -208,7 +208,7 @@ export eyeboxangles
 
 """This code is tightly linked to the cluster sizes returned by choosecluster. This is not goood design to link these two functions. Think about how to decouple these two functions. computes how the fov can be subdivided among lenslets based on cluster size. Assumes the horizontal size of the eyebox is larger than the vertical so the larger number of subdivisions will always be the first number in the returns Tuple."""
 function anglesubdivisions(cluster, pupildiameter::Unitful.Length, λ::Unitful.Length, mtf, cyclesperdegree; RGB=true)
-    numelements = Repeat.clustersize(cluster)
+    numelements = clustersize(cluster)
     if numelements == 37
         return RGB ? (4, 3) : (6, 6)
     elseif numelements == 19
@@ -338,7 +338,7 @@ function printsystemproperties(props)
 
     println("occlusion ratio  $(π*uconvert(Unitful.NoUnits,*(props[:lenslet_display_size]...)/(props[:lenslet_diameter])^2))")
     cluster = props[:cluster_data][:cluster]
-    clusterdiameter = Repeat.euclideandiameter(cluster)
+    clusterdiameter = euclideandiameter(cluster)
     println("cluster diameter (approx): $(clusterdiameter)")
 end
 
