@@ -43,7 +43,7 @@ function hexRGBW()
     eltlattice = HexBasis1()
     clusterbasis = LatticeBasis((0, 2), (2, -2))
     lattice = LatticeCluster(clusterbasis, eltlattice, clusterelements)
-    properties = DataFrame(Color=colors, Name=names)
+    properties = DataFrames.DataFrame(Color=colors, Name=names)
     return ClusterWithProperties(lattice, properties)
 end
 

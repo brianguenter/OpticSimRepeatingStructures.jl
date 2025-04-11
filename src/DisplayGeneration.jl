@@ -103,9 +103,9 @@ export spherepoints
 """given a total fov in θ  and ϕ compute sample points on the edges of the spherical rectangle."""
 function spherepoints(eyerelief, radius, θ, ϕ)
     hθ = tan(θ / 2) * eyerelief
-    nθ = atan(uconvert(Unitful.NoUnits, hθ / radius))
+    nθ = atan(Unitful.uconvert(Unitful.NoUnits, hθ / radius))
     hϕ = tan(ϕ / 2) * eyerelief
-    nϕ = atan(uconvert(Unitful.NoUnits, hϕ / radius))
+    nϕ = atan(Unitful.uconvert(Unitful.NoUnits, hϕ / radius))
 
     spherepoints(radius, -nθ, nθ, -nϕ, nϕ)
 end
@@ -156,8 +156,8 @@ Each hexagonal polygon corresponds to one lenslet. A hexagonal lattice is first 
 function spherepolygons(eyebox::Plane{T,N}, eyerelief, sphereradius, dir, fovθ, fovϕ, lattice)::Tuple{Vector{ConvexPolygon{6,T}},Vector{Tuple{Int64,Int64}}} where {T,N}
     # if fovθ, fovϕ are in degrees convert to radians. If they are unitless then the assumption is that they represent radians
     eyeboxz = eyebox.pointonplane[3]
-    sphereoriginoffset = eyeboxz + ustrip(mm, eyerelief - sphereradius) #we don't use mm when creating shapes because Transform doesn't work properly with unitful values. Add the units back on here.
-    sph = OpticSim.LeafNode(Sphere(ustrip(mm, sphereradius)), Geometry.translation(0.0, 0.0, sphereoriginoffset)) #Sphere objects are always centered at the origin so have to make 
+    sphereoriginoffset = eyeboxz + Unitful.ustrip(mm, eyerelief - sphereradius) #we don't use mm when creating shapes because Transform doesn't work properly with unitful values. Add the units back on here.
+    sph = OpticSim.LeafNode(Sphere(Unitful.ustrip(mm, sphereradius)), OpticSim.Geometry.translation(0.0, 0.0, sphereoriginoffset)) #Sphere objects are always centered at the origin so have to make 
     θ = upreferred(fovθ) #converts to radians if in degrees
     ϕ = upreferred(fovϕ) #converts to radians if in degrees
     tiles = eyeboxtiles(eyebox, eyerelief, -dir, sphereradius, θ, ϕ, lattice)

@@ -4,8 +4,6 @@
 # See LICENSE in the project root for full license information.
 
 
-import ..OpticSimRepeatingStructures
-
 #Really should extend AbstractLattice to support cosets, then wouldn't need this ad hoc stuff. TODO
 colorbasis(::HexBasis1) = SMatrix{2,2}(2, -1, 1, 1)
 colorbasis(::HexBasis3) = SMatrix{2,2}(2, -1, 1, 1)
@@ -40,7 +38,7 @@ const ρ_zerovalue = 3.832 # value of ρ at which the airy disk function has mag
 function compute_focal_length(fov, lensletdiameter, minfnumber, maxdisplaysize)
     maxangle = deg2rad(max(fov...)) #leaving angles as degrees caused trouble for not obvious reason
 
-    tempfl = uconvert(mm, maxdisplaysize / (2 * tan(maxangle / 2.0)))
+    tempfl = Unitful.uconvert(mm, maxdisplaysize / (2 * tan(maxangle / 2.0)))
     fnum = tempfl / lensletdiameter
     return tempfl * minfnumber / fnum
 end
@@ -55,11 +53,11 @@ minimum_lenslet_diameter(ppd, fov::Tuple{T,T}, pixel_pitch::Unitful.Length) wher
 export minimum_lenslet_diameter
 
 
-pixelsperdegree(focal_length, pixelpitch) = 1 / (2.0 * atand(uconvert(Unitful.NoUnits, pixelpitch / (2.0 * focal_length))))
+pixelsperdegree(focal_length, pixelpitch) = 1 / (2.0 * atand(Unitful.uconvert(Unitful.NoUnits, pixelpitch / (2.0 * focal_length))))
 export pixelsperdegree
 
 function lensletdisplaysize(fov, focal_length)
-    uconvert.(μm, 2 * focal_length .* tand.(fov ./ 2))
+    Unitful.uconvert.(μm, 2 * focal_length .* tand.(fov ./ 2))
 end
 export lenseletdisplaysize
 
@@ -92,7 +90,7 @@ from equation for Wc:
 θc = λ/diameter
 cycles/rad = 1/θc = diameter/λ
 """
-diffractionlimit(λ::Unitful.Length, diameter::Unitful.Length) = uconvert(Unitful.NoUnits, diameter / λ) / rad2deg(1)
+diffractionlimit(λ::Unitful.Length, diameter::Unitful.Length) = Unitful.uconvert(Unitful.NoUnits, diameter / λ) / rad2deg(1)
 export diffractionlimit
 
 #simple binary subdivision root finder. Only used in one place crazy to have dependency on Roots.jl just for this. 
@@ -123,14 +121,14 @@ function diameter_for_cycles_deg(mtf, cyclesperdeg, λ::Unitful.Length)
     f(x) = mtfcircular(x, 1.0) - mtf
     normalizedfrequency = find_zero(f, 0.0, 1.0)
     fc = cyclesperrad / normalizedfrequency
-    return uconvert(mm, λ * fc)
+    return Unitful.Unitful.uconvert(mm, λ * fc)
 end
 export diameter_for_cycles_deg
 
 airydisk(ρ) = (2 * SpecialFunctions.besselj1(ρ) / ρ)^2
 
 """The f# required for the first zero of the airy diffraction disk to be at the next sample point"""
-diffractionfnumber(λ::Unitful.Length, pixelpitch::Unitful.Length, indexofrefraction) = uconvert(Unitful.NoUnits, pixelpitch / (2.44λ / indexofrefraction))
+diffractionfnumber(λ::Unitful.Length, pixelpitch::Unitful.Length, indexofrefraction) = Unitful.uconvert(Unitful.NoUnits, pixelpitch / (2.44λ / indexofrefraction))
 export diffractionfnumber
 
 """returns ρ, the normalized distance, at which the airy disk will have the value airyvalue"""
@@ -163,10 +161,10 @@ function choosecluster(pupildiameter::Unitful.Length, lensletdiameter::Unitful.L
 
     for clusterfunc in clusters
         cluster = clusterfunc() #create an instance of the cluster type with default unit scale
-        scale = ustrip(mm, lensletdiameter) / euclideandiameter(elementbasis(cluster)) #scale the element basis of the cluster to match lenslet diameter
+        scale = Unitful.ustrip(mm, lensletdiameter) / euclideandiameter(elementbasis(cluster)) #scale the element basis of the cluster to match lenslet diameter
         scaledcluster = clusterfunc(scale) #make a new instance of the cluster type scaled so the element basis has diameter equal to lenslet diameter
 
-        temp = ustrip(mm, pupildiameter) / (euclideandiameter(scaledcluster))
+        temp = Unitful.ustrip(mm, pupildiameter) / (euclideandiameter(scaledcluster))
 
         if temp >= 1.0
             ratio = temp
@@ -177,10 +175,10 @@ function choosecluster(pupildiameter::Unitful.Length, lensletdiameter::Unitful.L
     end
 
     maxcluster = clusters[clusterindex](ratio * scale)
-    @assert isapprox(euclideandiameter(maxcluster), ustrip(mm, pupildiameter))
+    @assert isapprox(euclideandiameter(maxcluster), Unitful.ustrip(mm, pupildiameter))
 
     scaledlensletdiameter = lensletdiameter * ratio
-    return (cluster=maxcluster, lensletdiameter=scaledlensletdiameter, packingdistance=pupildiameter * ustrip(mm, lensletdiameter))
+    return (cluster=maxcluster, lensletdiameter=scaledlensletdiameter, packingdistance=pupildiameter * Unitful.ustrip(mm, lensletdiameter))
 end
 export choosecluster
 
@@ -203,7 +201,7 @@ end
 export numberoflenslets
 
 """angular size of the eyebox when viewed from distance eyerelief"""
-eyeboxangles(eyebox, eyerelief) = @. atand(uconvert(Unitful.NoUnits, eyebox / eyerelief))
+eyeboxangles(eyebox, eyerelief) = @. atand(Unitful.uconvert(Unitful.NoUnits, eyebox / eyerelief))
 export eyeboxangles
 
 """This code is tightly linked to the cluster sizes returned by choosecluster. This is not goood design to link these two functions. Think about how to decouple these two functions. computes how the fov can be subdivided among lenslets based on cluster size. Assumes the horizontal size of the eyebox is larger than the vertical so the larger number of subdivisions will always be the first number in the returns Tuple."""
@@ -231,7 +229,7 @@ export anglesubdivisions
 
 """Multilens displays tradeoff pixel redundancy for a reduction in total track of the display, by using many short focal length lenses to cover the eyebox. This function computes the ratio of pixels in the multilens display vs. a conventional display of the same nominal resolution"""
 function pixelredundancy(fov, eyerelief::Unitful.Length, eyebox::NTuple{2,Unitful.Length}, pupildiameter::Unitful.Length, lensletdiameter, angles; RGB=true)
-    nominalresolution = ustrip.(°, fov)  #remove degree units so pixel redundancy doesn't have units of °^-2
+    nominalresolution = Unitful.ustrip.(°, fov)  #remove degree units so pixel redundancy doesn't have units of °^-2
     numlenses = numberoflenslets(fov, eyerelief, lensletdiameter)
     return (numlenses * angles[1] * angles[2]) / (nominalresolution[1] * nominalresolution[2])
 end
@@ -245,7 +243,7 @@ function displaysize_ppdvspupildiameter()
     y = 3.0:0.05:4
     RGB = true
 
-    Plots.plot(Plots.contour(x, y, (x, y) -> maximum(ustrip.(μm, lensletdisplaysize((50, 35), 18mm, (10mm, 6mm), y * mm, x, RGB=RGB))), fill=true, xlabel="pixels per degree", ylabel="pupil diameter", legendtitle="display size μm", title="$(label(RGB)) lenslets"))
+    Plots.plot(Plots.contour(x, y, (x, y) -> maximum(Unitful.ustrip.(μm, lensletdisplaysize((50, 35), 18mm, (10mm, 6mm), y * mm, x, RGB=RGB))), fill=true, xlabel="pixels per degree", ylabel="pupil diameter", legendtitle="display size μm", title="$(label(RGB)) lenslets"))
 end
 export displaysize_ppdvspupildiameter
 
@@ -299,7 +297,7 @@ function system_properties(eyerelief::Unitful.Length, eyebox::NTuple{2,Unitful.L
     focal_length = compute_focal_length(angles, clusterdata.lensletdiameter, minfnumber, maxdisplaysize)
     dispsize = lensletdisplaysize(angles, focal_length)
     fnumber = focal_length / clusterdata.lensletdiameter
-    siliconarea = uconvert(mm^2, numlenses * dispsize[1] * dispsize[2])
+    siliconarea = Unitful.uconvert(mm^2, numlenses * dispsize[1] * dispsize[2])
     fulldisplaysize = sizeofdisplay(fov, eyerelief)
 
     pixels_per_degree = pixelsperdegree(focal_length, pixelpitch)
@@ -336,7 +334,7 @@ function printsystemproperties(props)
         end
     end
 
-    println("occlusion ratio  $(π*uconvert(Unitful.NoUnits,*(props[:lenslet_display_size]...)/(props[:lenslet_diameter])^2))")
+    println("occlusion ratio  $(π*Unitful.uconvert(Unitful.NoUnits,*(props[:lenslet_display_size]...)/(props[:lenslet_diameter])^2))")
     cluster = props[:cluster_data][:cluster]
     clusterdiameter = euclideandiameter(cluster)
     println("cluster diameter (approx): $(clusterdiameter)")
