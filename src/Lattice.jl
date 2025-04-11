@@ -92,17 +92,17 @@ end
 # These functions are used to find the lattice tiles that lie inside a polygonal shape
 
 """computes the matrix that transforms the basis set into the canonical basic vectors, eᵢ"""
-basisnormalization(a::Repeat.AbstractBasis) = Matrix(inv(Repeat.basismatrix(a))) # unfortunately LazySets doesn't work with StaticArrays. If you return a static Array is messes with their functions.
+basisnormalization(a::AbstractBasis) = Matrix(inv(basismatrix(a))) # unfortunately LazySets doesn't work with StaticArrays. If you return a static Array is messes with their functions.
 
 """warp the matrix into a coordinate frame where the basis vectors are canonical, eᵢ"""
-function normalizedshape(a::Repeat.AbstractBasis, shape::LazySets.VPolygon)
+function normalizedshape(a::AbstractBasis, shape::LazySets.VPolygon)
     normalizer = basisnormalization(a)
     return normalizer * shape
 end
 export normalizedshape
 
 """ compute a conservative range of lattice indices that might intersect containingshape"""
-function latticebox(containingshape::LazySets.VPolygon, lattice::Repeat.AbstractBasis)
+function latticebox(containingshape::LazySets.VPolygon, lattice::AbstractBasis)
     warpedshape = normalizedshape(lattice, containingshape)
     box = LazySets.interval_hull(warpedshape)
     return LazySets.Hyperrectangle(round.(box.center), (1, 1) .+ ceil.(box.radius)) # center the hyperrectangle on an integer point and enlarge the radius to take this into account
@@ -113,13 +113,13 @@ export latticebox
 """Returns the lattice coordinates of all tiles that lie at least partly inside containingshape. 
 
 Compute the lattice tiles with non-zero intersection with containingshape. First compute a transformation that maps the lattice basis vectors to canonical unit basis vectors eᵢ (this is the inverse of the lattice basis matrix). Then transform containingshape into this coordinate frame and compute a bounding box. Unit steps along the coordinate axes in this space represent unit *lattice* steps in the original space. This makes it simple to determine coordinate bounds in the original space. Then test for intersection in the original space."""
-function tilesinside(containingshape::LazySets.VPolygon, lattice::Repeat.AbstractBasis{2,T}) where {T}
+function tilesinside(containingshape::LazySets.VPolygon, lattice::AbstractBasis{2,T}) where {T}
     coordtype = Int64
 
     box = latticebox(containingshape, lattice)
 
     coords = coordtype.(box.radius)
-    tilevertices = LazySets.VPolygon(Matrix(Repeat.tilevertices(lattice))) # VPolygon will accept StaticArrays but other LazySets function will barf.
+    tilevertices = LazySets.VPolygon(Matrix(tilevertices(lattice))) # VPolygon will accept StaticArrays but other LazySets function will barf.
     result = Matrix{coordtype}(undef, 2, 0)
 
     for i in -coords[1]:coords[1]
@@ -138,9 +138,9 @@ end
 export tilesinside
 
 """The vertices of the containing shape are the columns of the matrix containingshape"""
-tilesinside(containingshape::AbstractMatrix, lattice::Repeat.AbstractBasis) = tilesinside(LazySets.VPolygon(containingshape), lattice)
+tilesinside(containingshape::AbstractMatrix, lattice::AbstractBasis) = tilesinside(LazySets.VPolygon(containingshape), lattice)
 
-tilesinside(xmin::T, ymin::T, xmax::T, ymax::T, lattice::Repeat.AbstractBasis) where {T<:AbstractFloat} = tilesinside(SMatrix{2,4,T}(xmin, ymin, xmin, ymax, xmax, ymax, xmax, ymin), lattice)
+tilesinside(xmin::T, ymin::T, xmax::T, ymax::T, lattice::AbstractBasis) where {T<:AbstractFloat} = tilesinside(SMatrix{2,4,T}(xmin, ymin, xmin, ymax, xmax, ymax, xmax, ymin), lattice)
 
 
 
@@ -166,7 +166,7 @@ end
 export euclideandiameter
 
 """ Lattic bases can have real basis vectors. This returns the maximum Euclidean distance between lattice basis center points."""
-euclideandiameter(a::Repeat.AbstractBasis) = euclideandiameter(Repeat.basismatrix(a))
+euclideandiameter(a::AbstractBasis) = euclideandiameter(basismatrix(a))
 
 """Only will work properly if lattice basis matrix contains only integer or rational terms. Returns the integer lattice coords of point in the given basis if the point is in the span of latticebasis. Otherwise returns nothing"""
 function latticepoint(lattice_basis_matrix::AbstractMatrix, origin, point)

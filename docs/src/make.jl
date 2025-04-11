@@ -3,7 +3,7 @@
 # See LICENSE in the project root for full license information.
 
 using Documenter
-using OpticSim
+using OpticSimRepeatingStructures
 import Makie
 
 # override certain functions to allow production of interactive figures
