@@ -176,7 +176,7 @@ end
 """given the eye box polygon and how it is to be subdivided computes the subdivided eyeboxes and centroids"""
 function compute_lenslet_eyebox_data(eyeboxtransform, eyeboxpoly::SMatrix{3,4,T,12}, subdivisions::Tuple{Int64,Int64})::Vector{SMatrix{3,4,Float64}} where {T} #can't figure out how to get the system to accept a type for an SMatrix of a Unitful quantity which is what eyeboxpoly is. Want to extract the number type from the Quantity type but this is not happening.
     subdivided_eyeboxpolys = subdivide(eyeboxpoly, subdivisions...)
-    strippedpolys = map(x -> ustrip.(mm, x), subdivided_eyeboxpolys)
+    strippedpolys = map(x -> Unitful.ustrip.(mm, x), subdivided_eyeboxpolys)
     subdivided_eyeboxpolys = [eyeboxtransform * x for x in strippedpolys] #these have units of mm which don't interact well with Transform.
     return subdivided_eyeboxpolys
 end
@@ -220,7 +220,7 @@ export smallsystemparameters
 function setup_coordinate_frames()
     eyeballframe = Transform()
     corneavertex = OpticSim.Data.cornea_to_eyecenter()
-    eyeboxtransform = eyeballframe * OpticSim.translation(0.0, 0.0, ustrip(mm, corneavertex))  #unfortunately can't use unitful values in transforms because the rotation and translation components would have different types which is not allowed in a Matrix.
+    eyeboxtransform = eyeballframe * OpticSim.translation(0.0, 0.0, Unitful.ustrip(mm, corneavertex))  #unfortunately can't use unitful values in transforms because the rotation and translation components would have different types which is not allowed in a Matrix.
 
     return (eyeball_frame=eyeballframe, eye_box_frame=eyeboxtransform)
 end
@@ -272,7 +272,7 @@ function setup_system(eye_box, fov, eye_relief, pupil_diameter, display_sphere_r
 
     clusterdata = props[:cluster_data]
     cluster = clusterdata[:cluster] #cluster that is repeated across the display to ensure continuous coverage of the eyebox and fov.
-    focallength = ustrip(mm, props[:focal_length]) #strip units off because these don't work well with Transform
+    focallength = Unitful.ustrip(mm, props[:focal_length]) #strip units off because these don't work well with Transform
 
     #compute lenslets based on system properties. lattice_coordinates are the (i,j) integer lattice coordinates of the hexagonal lattice making up the display. These coordinates are used to properly assign color and subdivided eyebox to the lenslets.
     lenses, lattice_coordinates = spherelenslets(eyebox_plane, eye_relief, focallength, [0.0, 0.0, 1.0], display_sphere_radius, fov[1], fov[2], elementbasis(cluster))
@@ -285,7 +285,7 @@ function setup_system(eye_box, fov, eye_relief, pupil_diameter, display_sphere_r
     lensletcolors = pointcolor.(lattice_coordinates, Ref(cluster))
 
     #compute subdivided eyebox polygons and assign to appropriate lenslets
-    eyeboxpoly::SMatrix{3,4} = mm * (eye_box_frame * eyeboxpolygon(ustrip.(mm, eye_box)...)) #four corners of the eyebox frame which is assumed centered around the positive Z axis. Transformed to the eyeballframe. Have to switch back and forth between Unitful and unitless quantities because Transform doesn't work with Unitful values.
+    eyeboxpoly::SMatrix{3,4} = mm * (eye_box_frame * eyeboxpolygon(Unitful.ustrip.(mm, eye_box)...)) #four corners of the eyebox frame which is assumed centered around the positive Z axis. Transformed to the eyeballframe. Have to switch back and forth between Unitful and unitless quantities because Transform doesn't work with Unitful values.
 
     @info "Subdividing eyebox polygon into $subdivisions sub boxes"
     subdivided_eyeboxpolys::Vector{SMatrix{3,4}} = compute_lenslet_eyebox_data(eye_box_frame, eyeboxpoly, subdivisions)
@@ -307,7 +307,7 @@ function setup_system(eye_box, fov, eye_relief, pupil_diameter, display_sphere_r
     projected_polygons = [x[2] for x in projected]
     @info "Lenslet diameter $(props[:lenslet_diameter])"
 
-    eyebox_rectangle = Rectangle(ustrip(mm, eye_box[1] / 2), ustrip(mm, eye_box[2] / 2), [0.0, 0.0, 1.0], [0.0, 0.0, eyeboxz], interface=opaqueinterface())
+    eyebox_rectangle = Rectangle(Unitful.ustrip(mm, eye_box[1] / 2), Unitful.ustrip(mm, eye_box[2] / 2), [0.0, 0.0, 1.0], [0.0, 0.0, eyeboxz], interface=opaqueinterface())
 
     return LensletSystem{Float64}(eyebox_rectangle, subdivisions, offset_lenses, lattice_coordinates, lensletcolors, projected_eyeboxes, displayplanes, lenslet_eye_boxes, lenslet_eyebox_numbers, lensleteyeboxcenters, props, subdivided_eyeboxpolys, projected_polygons)
 

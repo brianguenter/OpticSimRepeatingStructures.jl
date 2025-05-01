@@ -4,12 +4,13 @@ using TestItemRunner
 
 @testitem "Projection" begin
     using StaticArrays
+    import OpticSim
 
     using Unitful, Unitful.DefaultSymbols
     focallength = 10.0
-    lens = ParaxialLensRect(focallength, 100.0, 100.0, [0.0, 0.0, 1.0], [0.0, 0.0, 0.0])
-    display = OpticSim.Display(1000, 1000, 1.0μm, 1.0μm, Geometry.translation(0.0, 0.0, -focallength))
-    lenslet = OpticSim.LensletAssembly(lens, Geometry.identitytransform(), display)
+    lens = OpticSim.ParaxialLensRect(focallength, 100.0, 100.0, [0.0, 0.0, 1.0], [0.0, 0.0, 0.0])
+    display = OpticSimRepeatingStructures.Display(1000, 1000, 1.0μm, 1.0μm, OpticSim.Geometry.translation(0.0, 0.0, -focallength))
+    lenslet = OpticSimRepeatingStructures.LensletAssembly(lens, OpticSim.Geometry.identitytransform(), display)
     displaypoint = SVector(0.0, 0.0, -8.0)
     pupilpoints = SMatrix{3,2}(10.0, 10.0, 10.0, -10.0, -10.0, 20.0)
     project(lenslet, displaypoint, pupilpoints)
@@ -17,20 +18,27 @@ end
 
 @testitem "BeamEnergy" begin
     using StaticArrays
+    import OpticSim
+    using Unitful
+    using Unitful.DefaultSymbols
 
     focallength = 10.0
-    lens = ParaxialLensRect(focallength, 1.0, 1.0, [0.0, 0.0, 1.0], [0.0, 0.0, 0.0])
-    display = OpticSim.Display(1000, 1000, 1.0μm, 1.0μm, Geometry.translation(0.0, 0.0, -focallength))
-    lenslet = OpticSim.LensletAssembly(lens, Geometry.identitytransform(), display)
+    lens = OpticSim.ParaxialLensRect(focallength, 1.0, 1.0, [0.0, 0.0, 1.0], [0.0, 0.0, 0.0])
+    display = OpticSimRepeatingStructures.Display(1000, 1000, 1.0μm, 1.0μm, OpticSim.Geometry.translation(0.0, 0.0, -focallength))
+    lenslet = OpticSimRepeatingStructures.LensletAssembly(lens, OpticSim.Geometry.identitytransform(), display)
     displaypoint = SVector(0.0, 0.0, -8.0)
     #pupil is placed so that only 1/4 of it (approximately) is illuminated by lens beam
-    pupil = Rectangle(1.0, 1.0, SVector(0.0, 0.0, -1.0), SVector(2.0, 2.0, 40.0))
-    energy, centroid = OpticSim.beamenergy(lenslet, displaypoint, Geometry.vertices3d(pupil))
+    pupil = OpticSim.Rectangle(1.0, 1.0, SVector(0.0, 0.0, -1.0), SVector(2.0, 2.0, 40.0))
+    energy, centroid = OpticSimRepeatingStructures.beamenergy(lenslet, displaypoint, OpticSim.Geometry.vertices3d(pupil))
     @test isapprox(1 / 16, energy, atol=1e-4)
     @test isapprox([0.75, 0.75, 0.0], centroid)
 end
 
-@testitem "Repeat" setup = [Dependencies] begin
+@testitem "Repeat" begin
+    using Colors
+    using StaticArrays
+    using DataFrames
+
     function hex3RGB()
         clusterelements = SVector((0, 0), (-1, 0), (-1, 1))
         colors = [colorant"red", colorant"green", colorant"blue"]
@@ -38,7 +46,7 @@ end
         eltlattice = HexBasis1()
         clusterbasis = LatticeBasis((-1, 2), (2, -1))
         lattice = LatticeCluster(clusterbasis, eltlattice, clusterelements)
-        properties = DataFrame(Color=colors, Name=names)
+        properties = DataFrames.DataFrame(Color=colors, Name=names)
         return ClusterWithProperties(lattice, properties)
     end
 
@@ -59,7 +67,7 @@ end
 
     @test [-1 2; 2 -1] == basismatrix(clusterbasis(hex3RGB()))
 
-    function basistest(a::AbstractLatticeCluster)
+    function basistest(a::OpticSimRepeatingStructures.AbstractLatticeCluster)
         return clusterbasis(a)
     end
 
@@ -83,7 +91,7 @@ end
         eyeboxnumbers = (1, 1, 2, 1, 2, 2, 3, 3, 3, 4, 4, 4) #correct eyebox number assignment for the tiles in the cluster
         for (index, coord) in enumerate(cluster_coords)
             boxnum = eyeboxnumbers[index]
-            num = eyebox_number(coord, rgb_cluster, 4)
+            num = OpticSimRepeatingStructures.eyebox_number(coord, rgb_cluster, 4)
             if num != boxnum
                 return false
             end
