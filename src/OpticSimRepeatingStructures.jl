@@ -16,6 +16,7 @@ import OpticSim: surfaceintersection
 using OpticSim: virtualpoint, SphericalPolygon, processintersection, point, ParaxialLens
 import Unitful
 using Unitful.DefaultSymbols
+using Luxor
 
 include("Lattice.jl")
 include("HexagonalLattice.jl")
