@@ -7,7 +7,7 @@
 #start with eyebox plane and hexagonal tiling. Project onto display surface, generate lenslets automatically.
 
 using OpticSim.Geometry: Transform, world2local
-using OpticSim: plane_from_points, surfaceintersection, closestintersection, Ray, Plane, ConvexPolygon, Sphere, ParametricSurface, Rectangle
+using OpticSim: plane_from_points, surfaceintersection, closestintersection, Ray, Plane, ConvexPolygon, Sphere, ParametricSurface, Rectangle, ParaxialLensConvexPoly
 using OpticSimRepeatingStructures
 using OpticSimRepeatingStructures: tilevertices, HexBasis1, tilesinside
 using Unitful: upreferred

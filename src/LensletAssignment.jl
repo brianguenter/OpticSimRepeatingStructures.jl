@@ -49,7 +49,7 @@ end
 
 """ Computes the location of the optical center of the lens that will project the centroid of the display to the centroid of the eyebox. Normally the display centroid will be aligned with the geometric centroid of the lens, rather than the optical center of the lens."""
 function compute_optical_center(eyeboxcentroid, display_center, lens)
-    lens_geometric_center = centroid(lens) #geometric and optical center coincide at this point
+    lens_geometric_center = OpticSim.centroid(lens) #geometric and optical center coincide at this point
     v = eyeboxcentroid - lens_geometric_center
     r = Ray(display_center, v)
     #optical center may not lie inside the shape of the lens. surfaceintersection(lens,r) will return nothing in this case which will cause the setup_system code to crash. Instead intersect with the plane of the shape of the lens, which has infinite extent.
@@ -76,15 +76,15 @@ function replace_optical_center(eyeboxcentroid, displaycenter, lens)
     @assert isapprox(0.0, local_optic_center[3], atol=1e-12) "z should be zero in the local frame but instead it is $(local_optic_center[3])"
     local_optic_center = SVector{2}((local_optic_center)[1:2]) #this is defined in the 2D lens plane so z = 0
     # need the untransformed convexpoly vertices
-    return ParaxialLensConvexPoly(focallength(lens), shape(lens), local_optic_center)
+    return ParaxialLensConvexPoly(OpticSim.focallength(lens), OpticSim.shape(lens), local_optic_center)
 end
 
 
 
 """returns display plane represented in world coordinates, and the center point of the display"""
 function display_plane(lens)
-    center_point = centroid(lens) + -OpticSim.normal(lens) * OpticSim.focallength(lens)
-    pln = Plane(OpticSim.normal(lens), center_point, vishalfsizeu=0.5, vishalfsizev=0.5, interface=opaqueinterface())
+    center_point = OpticSim.centroid(lens) + -OpticSim.normal(lens) * OpticSim.focallength(lens)
+    pln = Plane(OpticSim.normal(lens), center_point, vishalfsizeu=0.5, vishalfsizev=0.5, interface=OpticSim.opaqueinterface())
     return pln, center_point
 end
 export display_plane
@@ -187,7 +187,7 @@ end
 
 function project_eyebox_to_display_plane(eyeboxpoly::AbstractMatrix{T}, lens, displayplane) where {T<:Real}
     rowdim, coldim = size(eyeboxpoly)
-    rays = [Ray(SVector{rowdim}(point), opticalcenter(lens) - SVector{rowdim}(point)) for point in eachcol(eyeboxpoly)]
+    rays = [Ray(SVector{rowdim}(point), OpticSim.opticalcenter(lens) - SVector{rowdim}(point)) for point in eachcol(eyeboxpoly)]
 
     points = collect([point(closestintersection(surfaceintersection(displayplane, ray), false)) for ray in rays])
 
@@ -195,8 +195,9 @@ function project_eyebox_to_display_plane(eyeboxpoly::AbstractMatrix{T}, lens, di
     threeDpts, toworld, _ = projectonbestfitplane(eyebox, [0.0, 0.0, -1.0])
     twoDpts = reshape(threeDpts[1:2, :], 2 * size(threeDpts)[2])
     twoDpts = collect(reinterpret(SVector{2,T}, twoDpts))
-    polygon = ConvexPolygon(toworld, twoDpts, opaqueinterface())
-    for (eyept, polypt) in zip(eachcol(eyebox), eachcol(vertices(polygon)))
+    polygon = OpticSim.ConvexPolygon(toworld, twoDpts, OpticSim.opaqueinterface())
+    for (eyept, polypt) in zip(eachcol(eyebox), eachcol(OpticSim.vertices(polygon)))
+        println(eyept, polypt)
         @assert isapprox(eyept, polypt)
     end
 

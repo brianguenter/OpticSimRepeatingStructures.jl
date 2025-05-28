@@ -77,7 +77,7 @@ export ringoffsets
 Example:
 
 ```
-Vis.@wrapluxor Vis.drawhexcells(50, hexregion((0,0),2))
+@wrapluxor drawhexcells(50, hexregion((0,0),2))
 ```
 """
 function region(::Type{HexBasis1}, centerpoint::Tuple{Int64,Int64}, n::Int64)

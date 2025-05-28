@@ -45,9 +45,9 @@ function test_paraxial_lens()
     refrac2, _, _ = OpticSim.processintersection(OpticSim.interface(lens), OpticSim.point(intsct2), OpticSim.normal(lens), OpticalRay(r2, 1.0, 0.55), OpticSim.TEMP_REF, OpticSim.PRESSURE_REF, false)
 
     # isapprox(-refrac2[1],refrac1[1]), refrac2[1], refrac1[1]
-    Vis.draw(lens)
-    Vis.draw!([Ray(OpticSim.point(intsct1) + [0.5, 0.5, 0.0], refrac1), r1]) #offset first ray so it can be seen. The other ray will be written over it and obscure it.
-    Vis.draw!([Ray(OpticSim.point(intsct2), refrac2), r2], color="green") #visualization should have two rays in opposite directions coming out of lens plane but only see one. Error in ParaxialLens.
+    draw(lens)
+    draw!([Ray(OpticSim.point(intsct1) + [0.5, 0.5, 0.0], refrac1), r1]) #offset first ray so it can be seen. The other ray will be written over it and obscure it.
+    draw!([Ray(OpticSim.point(intsct2), refrac2), r2], color="green") #visualization should have two rays in opposite directions coming out of lens plane but only see one. Error in ParaxialLens.
 end
 export test_paraxial_lens
 
@@ -85,8 +85,8 @@ function drawspherelenslets()
     computedprops = system_properties(eye_relief, eyebox, fov, pupil_diameter, mtf, cycles_per_degree, minfnumber=minfnumber, maxdisplaysize=250μm, pixelpitch=pixel_pitch)
     focallength = Unitful.ustrip(mm, computedprops[:focal_length])
     lenses, _ = spherelenslets(Plane(0.0, 0.0, 1.0, 0.0, 0.0, 18.0), eye_relief, focallength, [0.0, 0.0, 1.0], display_radius, fov[1], fov[2], HexBasis1())
-    Vis.draw() #clear screen
-    Vis.draw!.(lenses)
+    draw() #clear screen
+    draw!.(lenses)
     return nothing
 end
 export drawspherelenslets
@@ -155,7 +155,7 @@ function draw_projected_corners(system=setup_nominal_system())
             display_intersection = point(closest)
             @assert isapprox(display_intersection, projected_point) "error display_intersection $display_intersection projected_point $projected_point"
             lenstrace = LensTrace(OpticalRay(r, 1.0, 0.5), closest)
-            Vis.draw!(lenstrace)
+            draw!(lenstrace)
         end
     end
 end
@@ -172,15 +172,15 @@ function draw_eyebox_assignment(system=setup_nominal_system(), clear_screen=true
         displayplanes,
         lenslet_eyebox_numbers) = system
     if clear_screen
-        Vis.draw() #clear screen
+        draw() #clear screen
     end
 
     if draw_eyebox
-        Vis.draw!(eyebox_rectangle)
+        draw!(eyebox_rectangle)
     end
 
     for (lens, lattice_coordinates, color) in zip(lenses, lattice_coordinates, lenslet_colors)
-        Vis.draw!(lens, color=color)
+        draw!(lens, color=color)
     end
 
     num_distinct_eyeboxes = reduce(*, subdivisions_of_eyebox)
@@ -191,8 +191,8 @@ function draw_eyebox_assignment(system=setup_nominal_system(), clear_screen=true
     #     localframe = OpticSim.translation(-OpticSim.normal(lens))*OpticSim.localframe(shape(lens)) #the local frame of the lens is, unfortunately, stored only in the ConvexPoly shape. No other lens type has a local frame which is terrible design. Should be fixed.
     #     transformedpoints = (inv(localframe)*eyebox)[1:2,:]
     #     pts = [SVector{2}(x...) for x in eachcol(transformedpoints)]
-    #     # Vis.draw!(plane,color = colors[eyeboxnum])
-    #     Vis.draw!(ConvexPolygon(localframe,pts),color = colors[eyeboxnum])
+    #     # draw!(plane,color = colors[eyeboxnum])
+    #     draw!(ConvexPolygon(localframe,pts),color = colors[eyeboxnum])
     # end
 end
 export draw_eyebox_assignment
@@ -204,14 +204,14 @@ function draw_eyebox_rays(system=setup_nominal_system())
     for (lens, eyebox_center) in zip(lenses, lenslet_eyebox_centers)
         r = Ray(centroid(lens), centroid(lens) - eyebox_center)
         refrac_ray = ray(trace(LensAssembly(lens), OpticalRay(r, 1.0, 0.5)))
-        Vis.draw!(refrac_ray, color="yellow")
+        draw!(refrac_ray, color="yellow")
     end
 end
 
 function draw_eyebox_polygons(system=setup_nominal_system())
     (; projected_eyebox_polygons) = system
     for poly in projected_eyebox_polygons
-        Vis.draw!(poly)
+        draw!(poly)
     end
 end
 export draw_eyebox_polygons
@@ -219,7 +219,7 @@ export draw_eyebox_polygons
 function draw_system(system=setup_nominal_system())
     draw_eyebox_assignment(system, draw_eyebox=false)
     draw_subdivided_eyeboxes(system, false)
-    # Vis.draw!(compute_eyebox_rays(system))
+    # draw!(compute_eyebox_rays(system))
     draw_eyebox_rays(system)
     draw_projected_corners(system)
     draw_eyebox_polygons(system)
@@ -233,15 +233,15 @@ function draw_subdivided_eyeboxes(system=setup_nominal_system(), clear_screen=tr
     colors = distinguishable_colors(length(subdivided_eyebox_polys))
 
     if clear_screen
-        Vis.draw()
+        draw()
     end
 
     for (eyebox, color) in zip(subdivided_eyebox_polys, colors)
         center = matcentroid(eyebox)
-        Vis.draw!(matrix2rectangle(eyebox), color=color)
+        draw!(matrix2rectangle(eyebox), color=color)
         r = Ray(center, matnormal(eyebox))
-        Vis.draw!(r)
-        Vis.draw!(leaf(Sphere(0.1), OpticSim.Geometry.translation(center)), color="white")
+        draw!(r)
+        draw!(leaf(Sphere(0.1), OpticSim.Geometry.translation(center)), color="white")
     end
 end
 export draw_subdivided_eyeboxes
@@ -277,7 +277,7 @@ function test_ray_cast_from_display_center(clear_display=true)
     (; eyebox_rectangle, lenses, projected_eyeboxes) = system
 
     if clear_display
-        Vis.draw()
+        draw()
     end
 
     # draw_system(system)
@@ -291,13 +291,13 @@ function test_ray_cast_from_display_center(clear_display=true)
 
         r = OpticalRay(Ray(display_center, diff), 1.0, 0.53)
 
-        # Vis.draw!(eyebox_rectangle)
+        # draw!(eyebox_rectangle)
         system = CSGOpticalSystem(LensAssembly(lens), eyebox_rectangle)
-        Vis.draw!(r, color="black")
+        draw!(r, color="black")
         tr = trace(system, r)
 
         if tr !== nothing
-            Vis.draw!(tr, color="black")
+            draw!(tr, color="black")
         end
     end
 end

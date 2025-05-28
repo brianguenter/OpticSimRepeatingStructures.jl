@@ -2,8 +2,8 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # See LICENSE in the project root for full license information.
 
-# All of the objects can be displayed with Vis.draw. Example:
-# Vis.draw(hex4RGB())
+# All of the objects can be displayed with draw. Example:
+# draw(hex4RGB())
 
 colornames(colors) = uppercase.(x[1] * string((i - 1) ÷ 3 + 1) for (i, x) in pairs(colors))
 export colornames

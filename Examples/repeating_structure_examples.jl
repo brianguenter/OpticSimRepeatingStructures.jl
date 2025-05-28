@@ -6,24 +6,24 @@ export drawrectlattice, drawhexneighbors, drawhexregion, drawhexrect, drawhexrec
 export hex3cluster, hex3RGB, hexRGBW, hex12RGB
 export drawhex3RGB, drawhex12RGB
 
-drawrectlattice() = Vis.drawcells(RectangularBasis(), 50.0, SMatrix{2,4,Int64}(0, 0, 0, 1, 1, 0, 1, 1))
+drawrectlattice() = drawcells(RectangularBasis(), 50.0, SMatrix{2,4,Int64}(0, 0, 0, 1, 1, 0, 1, 1))
 
 """draw the 2 ring neighbors of the hex cell at coordinates (0,0)"""
-drawhexneighbors() = Vis.drawcells(HexBasis1(), 50, neighbors(HexBasis1, (0, 0), 2))
+drawhexneighbors() = drawcells(HexBasis1(), 50, neighbors(HexBasis1, (0, 0), 2))
 
 """draw hex cell at coordinates (0,0) and the 1 and 2 ring neighbors"""
-drawhexregion() = Vis.drawcells(HexBasis1(), 50, region(HexBasis1, (0, 0), 2))
+drawhexregion() = drawcells(HexBasis1(), 50, region(HexBasis1, (0, 0), 2))
 
 """draw hex cells that fit within a rectangular box centered at coordinates (0,0). Use fill color yellow."""
 function drawhexrect()
     cells = hexcellsinbox(2, 2)
-    Vis.drawcells(HexBasis1(), 50, cells, color=repeat(["yellow"], length(cells)))
+    drawcells(HexBasis1(), 50, cells, color=repeat(["yellow"], length(cells)))
 end
 
 """draw hex cells that fit within a rectangular box centered at coordinates (0,0). Use random fill colors selected for maximum distinguishability."""
 function drawhexrectcolors()
     cells = hexcellsinbox(4, 4)
-    Vis.drawcells(HexBasis1(), 30, cells)
+    drawcells(HexBasis1(), 30, cells)
 end
 
 """ Create a LatticeCluster with three elements at (0,0),(-1,0),(-1,1) coordinates in the HexBasis1 lattice"""
@@ -49,7 +49,7 @@ end
 
 
 """ draw 3 repeats of hex3RGB cluster """
-drawhex3RGB() = Vis.draw(hex3RGB(), [0 1 0; 0 0 1])
+drawhex3RGB() = draw(hex3RGB(), [0 1 0; 0 0 1])
 
 """ draw 3 repeats of hex12RGB cluster """
-drawhex12RGB() = Vis.draw(hex12RGB(), [0 1 0 1; 0 0 1 1])
+drawhex12RGB() = draw(hex12RGB(), [0 1 0 1; 0 0 1 1])

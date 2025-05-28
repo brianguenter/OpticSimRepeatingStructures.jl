@@ -111,10 +111,6 @@ end
     #verify that choosecluster assertion doesn't fire incorrectly
     using Unitful, Unitful.DefaultSymbols
     function generate_clusters()
-        freq = Vector{Int64}(undef, 0)
-        subdivs = Vector{Tuple{Int64,Int64}}(undef, 0)
-        areas = Vector(undef, 0)
-
         try
             for cycles in 15:30
                 system_properties(15mm, (10mm, 9mm), (100°, 70°), 3.5mm, 0.1, cycles)

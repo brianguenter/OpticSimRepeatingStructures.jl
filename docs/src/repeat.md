@@ -37,24 +37,24 @@ basis(HexBasis1())
 ```
 The [`rectangularlattice`](@ref sources) function creates a rectangular lattice basis. 
 
-There are a few visualization functions for special 2D lattices. [`Vis.drawcells`](@ref sources) draws a set of hexagonal cells. Using [`hexcellsinbox`](@ref sources) we can draw all the hexagonal cells that fit in a rectangular box:
+There are a few visualization functions for special 2D lattices. [`drawcells`](@ref sources) draws a set of hexagonal cells. Using [`hexcellsinbox`](@ref sources) we can draw all the hexagonal cells that fit in a rectangular box:
 
 ```@example 
 using OpticSimRepeatingStructures
-Vis.drawcells(HexBasis1(),50,hexcellsinbox(2,2))
+drawcells(HexBasis1(),50,hexcellsinbox(2,2))
 ```
 
 There is also a function to compute the n rings of a cell x, i.e., the cells which can be reached by taking no more than n steps along the lattice from x:
 
 ```@example 
 using OpticSimRepeatingStructures
-Vis.drawcells(HexBasis1(),50,neighbors(HexBasis1,(0,0),2))
+drawcells(HexBasis1(),50,neighbors(HexBasis1,(0,0),2))
 ```
  
 You can also draw all the cells contained within an n ring:
  
 ```@example 
 using OpticSimRepeatingStructures
-Vis.drawcells(HexBasis1(),50,region(HexBasis1,(0,0),2))
+drawcells(HexBasis1(),50,region(HexBasis1,(0,0),2))
 ```
 
