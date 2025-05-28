@@ -5,6 +5,7 @@
 using Documenter
 using OpticSimRepeatingStructures
 import Luxor
+import OpticSim
 
 # override certain functions to allow production of interactive figures
 OpticSim.set_current_mode(:docs)
