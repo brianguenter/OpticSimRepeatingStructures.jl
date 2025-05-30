@@ -7,8 +7,7 @@ using OpticSimRepeatingStructures
 import Luxor
 import OpticSim
 
-# override certain functions to allow production of interactive figures
-OpticSim.set_current_mode(:docs)
+
 
 
 makedocs(
@@ -17,9 +16,9 @@ makedocs(
         # prettyurls = get(ENV, "CI", nothing) == "true",
         assets=[asset("assets/logo.svg", class=:ico, islocal=true)],
     ),
-    modules=[OpticSim],
+    modules=[OpticSimRepeatingStructures],
     pages=[
-        "Home" => "repeat.md"
+        "Home" => "index.md"
     ]
 )
 

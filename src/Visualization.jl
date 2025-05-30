@@ -6,7 +6,9 @@
 
 #############################################################################
 
-
+function globby()
+end
+export globby
 
 # lattice visualizations are drawn with Luxor because it is easier to do 2D drawings with Luxor than with Makie.
 # Visualization functionality here rather than in OpticSimVisualization because otherwise end up with circular dependency which is difficult to resolve. 
@@ -35,13 +37,16 @@ function draw(tilebasis::OpticSimRepeatingStructures.AbstractBasis, tilesize, i,
     Luxor.translate(-offset)
 end
 
+"""draws cells in a cluster"""
 function drawcells(clstr::OpticSimRepeatingStructures.ClusterWithProperties, scale, points)
     _, npts = size(points)
     repeats = npts ÷ clustersize(clstr)
     props = repeat(OpticSimRepeatingStructures.properties(clstr), repeats)
     drawcells(elementbasis(clstr), scale, points, color=props[:, :Color], name=props[:, :Name])
 end
+export drawcells
 
+"""draws cells in a cluster"""
 drawcells(clstr::OpticSimRepeatingStructures.LatticeCluster, scale, points) = drawcells(elementbasis(clstr), scale, points)
 
 """Draws a list of hexagonal cells, represented by their lattice coordinates, which are represented as a 2D matrix, with each column being one lattice coordinate."""

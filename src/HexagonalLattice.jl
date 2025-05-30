@@ -164,7 +164,7 @@ function hexcellsinbox(numi, numj)
     end
     return result
 end
-export Repeat
+export hexcellsinbox
 
 """`scale` will scale the canonical basis vectors of this hexagonal tiling"""
 struct HexBasis3{N,T} <: AbstractBasis{N,T}
