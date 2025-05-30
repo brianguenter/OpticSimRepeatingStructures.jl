@@ -1,0 +1,4 @@
+# Introduction
+[![Build Status](https://github.com/brianguenter/OpticSimRepeatingStructures.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/brianguenter/OpticSimRepeatingStructures.jl/actions/workflows/CI.yml?query=branch%3Amain) [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://brianguenter.github.io/OpticSimRepeatingStructures.jl/stable) [![](https://img.shields.io/badge/docs-dev-blue.svg)](https://brianguenter.github.io/OpticSimRepeatingStructures.jl/dev)
+
+This package adds functionality to `OpticSim` to make it easier to programmatically define and manipulate repeating optical structures, such as lenslet arrays.

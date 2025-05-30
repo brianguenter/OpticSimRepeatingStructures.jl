@@ -8,13 +8,16 @@ export basismatrix
 
 using Base: offset_if_vec
 using StaticArrays: SVector, MVector, SMatrix, MMatrix
-using DataFrames: DataFrame
+import DataFrames
 import LazySets
-using LinearAlgebra: norm
+using LinearAlgebra: norm, ⋅
 import OpticSim #only LensletAssembly uses OpticSim. This doesn't seem like a great idea. Probably should move LensletAssembly somewhere else or at least remove the dependency.
 import OpticSim: surfaceintersection
 using OpticSim: virtualpoint, SphericalPolygon, processintersection, point, ParaxialLens
 import Unitful
+using Unitful.DefaultSymbols
+import Luxor
+import Colors
 
 include("Lattice.jl")
 include("HexagonalLattice.jl")
@@ -30,6 +33,7 @@ include("LensletAssignment.jl")
 include("Example.jl")
 
 include("LensletAssembly.jl")
+include("Visualization.jl")
 
 
 end #module

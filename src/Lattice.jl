@@ -119,14 +119,14 @@ function tilesinside(containingshape::LazySets.VPolygon, lattice::AbstractBasis{
     box = latticebox(containingshape, lattice)
 
     coords = coordtype.(box.radius)
-    tilevertices = LazySets.VPolygon(Matrix(tilevertices(lattice))) # VPolygon will accept StaticArrays but other LazySets function will barf.
+    vertices = LazySets.VPolygon(Matrix(tilevertices(lattice))) # VPolygon will accept StaticArrays but other LazySets function will barf.
     result = Matrix{coordtype}(undef, 2, 0)
 
     for i in -coords[1]:coords[1]
         for j in -coords[2]:coords[2]
             offsetcoords = (Int64.(box.center) + [i, j])
             center = Vector(lattice[offsetcoords...]) #[] indexer for lattices returns SVector which LazySets doesn't handle. Convert to conventional Vector.
-            offsethex = LazySets.translate(tilevertices, center)
+            offsethex = LazySets.translate(vertices, center)
 
             if !isempty(offsethex ∩ containingshape)
                 result = hcat(result, offsetcoords)

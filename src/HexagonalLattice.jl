@@ -77,7 +77,7 @@ export ringoffsets
 Example:
 
 ```
-Vis.@wrapluxor Vis.drawhexcells(50, hexregion((0,0),2))
+@wrapluxor drawhexcells(50, hexregion((0,0),2))
 ```
 """
 function region(::Type{HexBasis1}, centerpoint::Tuple{Int64,Int64}, n::Int64)
@@ -164,7 +164,7 @@ function hexcellsinbox(numi, numj)
     end
     return result
 end
-export Repeat
+export hexcellsinbox
 
 """`scale` will scale the canonical basis vectors of this hexagonal tiling"""
 struct HexBasis3{N,T} <: AbstractBasis{N,T}

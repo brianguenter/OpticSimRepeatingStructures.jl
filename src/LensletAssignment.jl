@@ -49,7 +49,7 @@ end
 
 """ Computes the location of the optical center of the lens that will project the centroid of the display to the centroid of the eyebox. Normally the display centroid will be aligned with the geometric centroid of the lens, rather than the optical center of the lens."""
 function compute_optical_center(eyeboxcentroid, display_center, lens)
-    lens_geometric_center = centroid(lens) #geometric and optical center coincide at this point
+    lens_geometric_center = OpticSim.centroid(lens) #geometric and optical center coincide at this point
     v = eyeboxcentroid - lens_geometric_center
     r = Ray(display_center, v)
     #optical center may not lie inside the shape of the lens. surfaceintersection(lens,r) will return nothing in this case which will cause the setup_system code to crash. Instead intersect with the plane of the shape of the lens, which has infinite extent.
@@ -76,15 +76,15 @@ function replace_optical_center(eyeboxcentroid, displaycenter, lens)
     @assert isapprox(0.0, local_optic_center[3], atol=1e-12) "z should be zero in the local frame but instead it is $(local_optic_center[3])"
     local_optic_center = SVector{2}((local_optic_center)[1:2]) #this is defined in the 2D lens plane so z = 0
     # need the untransformed convexpoly vertices
-    return ParaxialLensConvexPoly(focallength(lens), shape(lens), local_optic_center)
+    return ParaxialLensConvexPoly(OpticSim.focallength(lens), OpticSim.shape(lens), local_optic_center)
 end
 
 
 
 """returns display plane represented in world coordinates, and the center point of the display"""
 function display_plane(lens)
-    center_point = centroid(lens) + -OpticSim.normal(lens) * OpticSim.focallength(lens)
-    pln = Plane(OpticSim.normal(lens), center_point, vishalfsizeu=0.5, vishalfsizev=0.5, interface=opaqueinterface())
+    center_point = OpticSim.centroid(lens) + -OpticSim.normal(lens) * OpticSim.focallength(lens)
+    pln = Plane(OpticSim.normal(lens), center_point, vishalfsizeu=0.5, vishalfsizev=0.5, interface=OpticSim.opaqueinterface())
     return pln, center_point
 end
 export display_plane
@@ -176,7 +176,7 @@ end
 """given the eye box polygon and how it is to be subdivided computes the subdivided eyeboxes and centroids"""
 function compute_lenslet_eyebox_data(eyeboxtransform, eyeboxpoly::SMatrix{3,4,T,12}, subdivisions::Tuple{Int64,Int64})::Vector{SMatrix{3,4,Float64}} where {T} #can't figure out how to get the system to accept a type for an SMatrix of a Unitful quantity which is what eyeboxpoly is. Want to extract the number type from the Quantity type but this is not happening.
     subdivided_eyeboxpolys = subdivide(eyeboxpoly, subdivisions...)
-    strippedpolys = map(x -> ustrip.(mm, x), subdivided_eyeboxpolys)
+    strippedpolys = map(x -> Unitful.ustrip.(mm, x), subdivided_eyeboxpolys)
     subdivided_eyeboxpolys = [eyeboxtransform * x for x in strippedpolys] #these have units of mm which don't interact well with Transform.
     return subdivided_eyeboxpolys
 end
@@ -187,7 +187,7 @@ end
 
 function project_eyebox_to_display_plane(eyeboxpoly::AbstractMatrix{T}, lens, displayplane) where {T<:Real}
     rowdim, coldim = size(eyeboxpoly)
-    rays = [Ray(SVector{rowdim}(point), opticalcenter(lens) - SVector{rowdim}(point)) for point in eachcol(eyeboxpoly)]
+    rays = [Ray(SVector{rowdim}(point), OpticSim.opticalcenter(lens) - SVector{rowdim}(point)) for point in eachcol(eyeboxpoly)]
 
     points = collect([point(closestintersection(surfaceintersection(displayplane, ray), false)) for ray in rays])
 
@@ -195,8 +195,9 @@ function project_eyebox_to_display_plane(eyeboxpoly::AbstractMatrix{T}, lens, di
     threeDpts, toworld, _ = projectonbestfitplane(eyebox, [0.0, 0.0, -1.0])
     twoDpts = reshape(threeDpts[1:2, :], 2 * size(threeDpts)[2])
     twoDpts = collect(reinterpret(SVector{2,T}, twoDpts))
-    polygon = ConvexPolygon(toworld, twoDpts, opaqueinterface())
-    for (eyept, polypt) in zip(eachcol(eyebox), eachcol(vertices(polygon)))
+    polygon = OpticSim.ConvexPolygon(toworld, twoDpts, OpticSim.opaqueinterface())
+    for (eyept, polypt) in zip(eachcol(eyebox), eachcol(OpticSim.vertices(polygon)))
+        println(eyept, polypt)
         @assert isapprox(eyept, polypt)
     end
 
@@ -220,7 +221,7 @@ export smallsystemparameters
 function setup_coordinate_frames()
     eyeballframe = Transform()
     corneavertex = OpticSim.Data.cornea_to_eyecenter()
-    eyeboxtransform = eyeballframe * OpticSim.translation(0.0, 0.0, ustrip(mm, corneavertex))  #unfortunately can't use unitful values in transforms because the rotation and translation components would have different types which is not allowed in a Matrix.
+    eyeboxtransform = eyeballframe * OpticSim.translation(0.0, 0.0, Unitful.ustrip(mm, corneavertex))  #unfortunately can't use unitful values in transforms because the rotation and translation components would have different types which is not allowed in a Matrix.
 
     return (eyeball_frame=eyeballframe, eye_box_frame=eyeboxtransform)
 end
@@ -272,7 +273,7 @@ function setup_system(eye_box, fov, eye_relief, pupil_diameter, display_sphere_r
 
     clusterdata = props[:cluster_data]
     cluster = clusterdata[:cluster] #cluster that is repeated across the display to ensure continuous coverage of the eyebox and fov.
-    focallength = ustrip(mm, props[:focal_length]) #strip units off because these don't work well with Transform
+    focallength = Unitful.ustrip(mm, props[:focal_length]) #strip units off because these don't work well with Transform
 
     #compute lenslets based on system properties. lattice_coordinates are the (i,j) integer lattice coordinates of the hexagonal lattice making up the display. These coordinates are used to properly assign color and subdivided eyebox to the lenslets.
     lenses, lattice_coordinates = spherelenslets(eyebox_plane, eye_relief, focallength, [0.0, 0.0, 1.0], display_sphere_radius, fov[1], fov[2], elementbasis(cluster))
@@ -285,7 +286,7 @@ function setup_system(eye_box, fov, eye_relief, pupil_diameter, display_sphere_r
     lensletcolors = pointcolor.(lattice_coordinates, Ref(cluster))
 
     #compute subdivided eyebox polygons and assign to appropriate lenslets
-    eyeboxpoly::SMatrix{3,4} = mm * (eye_box_frame * eyeboxpolygon(ustrip.(mm, eye_box)...)) #four corners of the eyebox frame which is assumed centered around the positive Z axis. Transformed to the eyeballframe. Have to switch back and forth between Unitful and unitless quantities because Transform doesn't work with Unitful values.
+    eyeboxpoly::SMatrix{3,4} = mm * (eye_box_frame * eyeboxpolygon(Unitful.ustrip.(mm, eye_box)...)) #four corners of the eyebox frame which is assumed centered around the positive Z axis. Transformed to the eyeballframe. Have to switch back and forth between Unitful and unitless quantities because Transform doesn't work with Unitful values.
 
     @info "Subdividing eyebox polygon into $subdivisions sub boxes"
     subdivided_eyeboxpolys::Vector{SMatrix{3,4}} = compute_lenslet_eyebox_data(eye_box_frame, eyeboxpoly, subdivisions)
@@ -307,7 +308,7 @@ function setup_system(eye_box, fov, eye_relief, pupil_diameter, display_sphere_r
     projected_polygons = [x[2] for x in projected]
     @info "Lenslet diameter $(props[:lenslet_diameter])"
 
-    eyebox_rectangle = Rectangle(ustrip(mm, eye_box[1] / 2), ustrip(mm, eye_box[2] / 2), [0.0, 0.0, 1.0], [0.0, 0.0, eyeboxz], interface=opaqueinterface())
+    eyebox_rectangle = Rectangle(Unitful.ustrip(mm, eye_box[1] / 2), Unitful.ustrip(mm, eye_box[2] / 2), [0.0, 0.0, 1.0], [0.0, 0.0, eyeboxz], interface=opaqueinterface())
 
     return LensletSystem{Float64}(eyebox_rectangle, subdivisions, offset_lenses, lattice_coordinates, lensletcolors, projected_eyeboxes, displayplanes, lenslet_eye_boxes, lenslet_eyebox_numbers, lensleteyeboxcenters, props, subdivided_eyeboxpolys, projected_polygons)
 

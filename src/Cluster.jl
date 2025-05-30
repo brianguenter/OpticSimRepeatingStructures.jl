@@ -135,7 +135,7 @@ abstract type RGBCluster <: ClusterColors end
 
 
 """
-May want to have many properties associated with the elements in a cluster, which is why properties is represented as a DataFrame. The DataFrame in the properties field should have as many rows as there are elements in a cluster. At a minimum it must have a :Color and a :Name column.
+May want to have many properties associated with the elements in a cluster, which is why properties is represented as a DataFrames.DataFrame. The DataFrame in the properties field should have as many rows as there are elements in a cluster. At a minimum it must have a :Color and a :Name column.
 
 Clusters can be type tagged as being either MonochromeCluster or RGBCluster. If you are using the lenslet assignment functions in Multilens
 then you should explicitly include an RGB type if the cluster has RGB lenslets.
@@ -157,10 +157,10 @@ end
 """
 struct ClusterWithProperties{N1,N,T,Q<:ClusterColors} <: AbstractLatticeCluster{N1,N}
     cluster::LatticeCluster{N1,N,T}
-    properties::DataFrame
+    properties::DataFrames.DataFrame
 
-    ClusterWithProperties(cluster::L, properties::D) where {L<:LatticeCluster,D<:DataFrame} = ClusterWithProperties{MonochromeCluster}(cluster, properties)
-    ClusterWithProperties{Q}(cluster::L, properties::D) where {N1,N,T,Q<:ClusterColors,L<:LatticeCluster{N1,N,T},D<:DataFrame} = new{N1,N,T,Q}(cluster, properties)
+    ClusterWithProperties(cluster::L, properties::D) where {L<:LatticeCluster,D<:DataFrames.DataFrame} = ClusterWithProperties{MonochromeCluster}(cluster, properties)
+    ClusterWithProperties{Q}(cluster::L, properties::D) where {N1,N,T,Q<:ClusterColors,L<:LatticeCluster{N1,N,T},D<:DataFrames.DataFrame} = new{N1,N,T,Q}(cluster, properties)
 end
 export ClusterWithProperties
 
