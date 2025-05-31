@@ -18,7 +18,7 @@ Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
 [compat]
 Colors = "0.13.0"
 DataFrames = "1.7.0"
-LazySets = "3.1.0"
+LazySets = "3.1.0, 4"
 LinearAlgebra = "1.11.0"
 Luxor = "4.2.0"
 OpticSim = "0.7.0"
